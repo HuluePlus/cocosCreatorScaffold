@@ -23,7 +23,9 @@ npm install
 assets/
 ├── framework/                 # 与示例业务无关的通用脚手架
 │   ├── base/                  # Cocos 实体基类
+│   ├── audio/                 # 背景音乐与并发音效管理
 │   ├── core/                  # 生命周期、事件、状态机、对象池
+│   ├── effects/               # 摄像机等 Cocos 表现组件
 │   └── utils/                 # 数学和二维碰撞工具
 ├── examples/                  # 可删除或替换的示例业务
 │   ├── configs/               # 强类型业务事件
@@ -49,6 +51,8 @@ examples  ─────>  framework  ─────>  TypeScript / Cocos 基�
 - `StateMachine`：泛型状态机，保证旧状态 `exit` 先于新状态 `enter`。
 - `PoolManager`：工厂创建的强类型对象池，集中管理获取、归还和销毁。
 - `BaseEntity`：统一 Cocos 实体初始化、激活、停用和池化销毁流程。
+- `AudioManager`：统一背景音乐、并发音效、分组音量、静音和前后台暂停恢复。
+- `CameraShake`：可叠加且自动衰减的 2D 摄像机震动，停用或销毁时恢复节点变换。
 - `MathUtils`：范围限制、插值、近似比较和可测试随机整数。
 - `CollisionUtils`：与引擎无关的点、矩形和圆形碰撞判断。
 
@@ -57,6 +61,7 @@ examples  ─────>  framework  ─────>  TypeScript / Cocos 基�
 ## 示例如何组合 Framework
 
 - `FrameworkDemo` 将 Cocos 前后台事件交给 `GameManager`。
+- `FrameworkDemo` 在碰撞事件中组合 `CameraShake` 提供即时视觉反馈。
 - `DemoStateMachine` 组合 `StateMachine`，显式维护 ready/running/paused。
 - `DemoController` 通过 `PoolManager` 创建和回收 `DemoOrb`。
 - `DemoOrb` 继承 `BaseEntity`，并使用数学与碰撞工具完成运动。

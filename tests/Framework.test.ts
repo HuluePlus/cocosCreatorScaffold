@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { EventBus } from '../assets/framework/core/EventBus';
 import { GameManager } from '../assets/framework/core/GameManager';
 import { PoolManager, type Poolable } from '../assets/framework/core/PoolManager';
+import { ShakeModel } from '../assets/framework/core/ShakeModel';
 import { StateMachine, type State } from '../assets/framework/core/StateMachine';
 import { CollisionUtils } from '../assets/framework/utils/CollisionUtils';
 import { MathUtils } from '../assets/framework/utils/MathUtils';
@@ -136,6 +137,30 @@ describe('framework utilities', () => {
       { x: 10, y: 10, width: -10, height: -10 },
       { x: 5, y: 5 },
     )).toBe(true);
+  });
+});
+
+describe('ShakeModel', () => {
+  it('decays deterministic impulses and returns to rest', () => {
+    const model = new ShakeModel();
+    expect(model.add({ duration: 1, strength: 10, frequency: 0 })).toBe(true);
+
+    const initial = model.update(0);
+    expect(initial.x).toBeCloseTo(0);
+    expect(initial.y).toBeCloseTo(10);
+    expect(model.update(0.5).y).toBeCloseTo(5);
+    expect(model.update(0.5)).toEqual({ x: 0, y: 0, rotation: 0 });
+    expect(model.active).toBe(false);
+  });
+
+  it('clears overlapping impulses immediately', () => {
+    const model = new ShakeModel(2);
+    model.add({ duration: 1, strength: 4 });
+    model.add({ duration: 1, strength: 6 });
+    model.stop();
+
+    expect(model.active).toBe(false);
+    expect(model.update(0.1)).toEqual({ x: 0, y: 0, rotation: 0 });
   });
 });
 

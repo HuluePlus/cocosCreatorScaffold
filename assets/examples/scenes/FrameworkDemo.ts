@@ -14,6 +14,7 @@ import {
 } from 'cc';
 import { EventBus, type Unsubscribe } from '../../framework/core/EventBus';
 import { GameManager } from '../../framework/core/GameManager';
+import { CameraShake } from '../../framework/effects/CameraShake';
 import type { DemoEventMap } from '../configs/DemoEvents';
 import { DemoController } from '../core/DemoController';
 
@@ -46,6 +47,7 @@ export class FrameworkDemo extends Component {
   private readonly events = new EventBus<DemoEventMap>();
   private readonly unsubscribers: Unsubscribe[] = [];
   private controller: DemoController | null = null;
+  private cameraShake: CameraShake | null = null;
   private stateLabel: Label | null = null;
   private activeLabel: Label | null = null;
   private pooledLabel: Label | null = null;
@@ -82,6 +84,9 @@ export class FrameworkDemo extends Component {
   private startApplication(): void {
     this.configureViewport();
     this.buildInterface();
+    const cameraNode = this.node.getChildByName('Camera');
+    if (!cameraNode) throw new Error('Camera node was not found');
+    this.cameraShake = cameraNode.getComponent(CameraShake) ?? cameraNode.addComponent(CameraShake);
     this.bindEvents();
     const arena = this.node.getChildByName('Arena');
     if (!arena) throw new Error('Arena node was not created');
@@ -115,6 +120,9 @@ export class FrameworkDemo extends Component {
     game.off(Game.EVENT_SHOW, this.handleShow, this);
     this.controller?.destroy();
     this.controller = null;
+    this.cameraShake?.stop();
+    this.cameraShake?.destroy();
+    this.cameraShake = null;
     for (const unsubscribe of this.unsubscribers) unsubscribe();
     this.unsubscribers.length = 0;
     this.events.clear();
@@ -211,6 +219,7 @@ export class FrameworkDemo extends Component {
         if (this.createdLabel) this.createdLabel.string = `已创建\n${created}`;
       }),
       this.events.on('demo:collision', ({ total }) => {
+        this.cameraShake?.shake({ duration: 0.16, strength: 5, frequency: 26, rotation: 0.12 });
         if (this.collisionLabel) this.collisionLabel.string = `碰撞 ${total}`;
         if (total <= 3 || total % 10 === 0) this.appendLog(`碰撞事件 #${total}`);
       }),

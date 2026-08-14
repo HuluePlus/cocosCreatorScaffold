@@ -314,9 +314,11 @@ writeJson('assets/scenes/main.scene', scene);
 
 const directories = [
   'assets/framework',
+  'assets/framework/audio',
   'assets/framework/base',
   'assets/framework/core',
   'assets/framework/core/states',
+  'assets/framework/effects',
   'assets/framework/utils',
   'assets/examples',
   'assets/examples/configs',
@@ -328,12 +330,15 @@ const directories = [
 
 const typeScriptFiles = [
   'assets/framework/index.ts',
+  'assets/framework/audio/AudioManager.ts',
   'assets/framework/base/BaseEntity.ts',
   'assets/framework/core/EventBus.ts',
   'assets/framework/core/GameManager.ts',
   'assets/framework/core/PoolManager.ts',
+  'assets/framework/core/ShakeModel.ts',
   'assets/framework/core/StateMachine.ts',
   'assets/framework/core/states/LifecycleStates.ts',
+  'assets/framework/effects/CameraShake.ts',
   'assets/framework/utils/CollisionUtils.ts',
   'assets/framework/utils/MathUtils.ts',
   'assets/examples/configs/DemoEvents.ts',
