@@ -20,6 +20,7 @@
 4. Cocos 组件销毁前清理事件、计时器、Tween 和池化对象。
 5. 修改 `FrameworkDemo` 的脚本 UUID 或场景结构后，同步更新生成脚本并重新运行 `npm run generate:assets`。
 6. 不提交 `library/`、`temp/`、`build/`、`profiles/`、`coverage/` 或 `node_modules/`。
+7. **检查微信发布转译兼容性**：Cocos Creator 3.8.7 发布构建的 loose 转译会把 `[...someSet]` 降级为 `[].concat(someSet)`，结果是只包含 `Set` 本身的数组，而不是元素数组。浏览器预览执行原生展开语法时不会复现，但微信体验版可能在运行时报 `(..., value[index]) is not a function`。运行时代码不得用数组展开复制 `Set`/`Map` 迭代器；使用 `Array.from(set)` 或显式 `forEach` 收集。涉及这类代码时，单元测试之外还要在用户重新构建后检查 `build/wechatgame-*/assets/main/index.js`，确认未生成 `[].concat(set)`。
 
 ## 必跑验证
 
