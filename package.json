@@ -1,0 +1,24 @@
+{
+  "name": "cocos-creator-scaffold",
+  "version": "0.1.0",
+  "description": "A typed Cocos Creator 3.8.7 2D scaffold with reusable framework primitives.",
+  "private": true,
+  "license": "MIT",
+  "uuid": "38d18f2f-9cde-40be-b0b3-6869bd97c498",
+  "creator": {
+    "version": "3.8.7"
+  },
+  "scripts": {
+    "generate:assets": "node tools/generate-project-assets.mjs",
+    "validate:assets": "node tools/validate-project-assets.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck:framework": "tsc -p tsconfig.framework.json --noEmit",
+    "test": "vitest run",
+    "check": "npm run typecheck && npm run typecheck:framework && npm test && npm run validate:assets"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}
