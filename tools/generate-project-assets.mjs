@@ -7,6 +7,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const sceneUuid = '44ab1e30-2741-4c03-94fb-68b40a5c4f89';
 const frameworkDemoUuid = 'b6e0a2c8-4569-4d1d-9b4c-1f2e3a4b5c6d';
 const frameworkDemoType = 'b6e0aLIRWlNHZtMHy46S1xt';
+const designResolution = { width: 375, height: 852 };
 
 /** 将对象以 Creator 友好的格式写入项目。 */
 function writeJson(relativePath, value) {
@@ -87,7 +88,12 @@ const scene = [
     _active: true,
     _components: [{ __id__: 5 }, { __id__: 6 }, { __id__: 7 }, { __id__: 8 }],
     _prefab: null,
-    _lpos: { __type__: 'cc.Vec3', x: 375, y: 667, z: 0 },
+    _lpos: {
+      __type__: 'cc.Vec3',
+      x: designResolution.width / 2,
+      y: designResolution.height / 2,
+      z: 0,
+    },
     _lrot: { __type__: 'cc.Quat', x: 0, y: 0, z: 0, w: 1 },
     _lscale: { __type__: 'cc.Vec3', x: 1, y: 1, z: 1 },
     _mobility: 0,
@@ -125,7 +131,7 @@ const scene = [
     _priority: 0,
     _fov: 45,
     _fovAxis: 0,
-    _orthoHeight: 667,
+    _orthoHeight: designResolution.height / 2,
     _near: 0,
     _far: 2000,
     _color: { __type__: 'cc.Color', r: 24, g: 29, b: 37, a: 255 },
@@ -153,7 +159,7 @@ const scene = [
     node: { __id__: 2 },
     _enabled: true,
     __prefab: null,
-    _contentSize: { __type__: 'cc.Size', width: 750, height: 1334 },
+    _contentSize: { __type__: 'cc.Size', ...designResolution },
     _anchorPoint: { __type__: 'cc.Vec2', x: 0.5, y: 0.5 },
     _id: '49ceaa3c-8305-4bb5-b37f-61f9f7cf060c',
   },

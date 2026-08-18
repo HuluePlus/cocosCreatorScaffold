@@ -20,8 +20,9 @@ import { DemoController } from '../core/DemoController';
 
 const { ccclass } = _decorator;
 
-const DESIGN_WIDTH = 750;
-const DESIGN_HEIGHT = 1334;
+const DESIGN_WIDTH = 375;
+const DESIGN_HEIGHT = 852;
+const INTERFACE_SCALE = 0.5;
 const ARENA_WIDTH = 650;
 const ARENA_HEIGHT = 650;
 
@@ -56,6 +57,7 @@ export class FrameworkDemo extends Component {
   private pauseButtonLabel: Label | null = null;
   private readonly logLines: string[] = [];
   private logLabel: Label | null = null;
+  private backgroundNode: Node | null = null;
   private resumeAfterAppShow = false;
 
   /** 配置生命周期管理器并启动示例。 */
@@ -83,12 +85,13 @@ export class FrameworkDemo extends Component {
   /** 构建界面、绑定事件并创建示例控制器。 */
   private startApplication(): void {
     this.configureViewport();
-    this.buildInterface();
+    const interfaceRoot = this.buildInterface();
     const cameraNode = this.node.getChildByName('Camera');
     if (!cameraNode) throw new Error('Camera node was not found');
     this.cameraShake = cameraNode.getComponent(CameraShake) ?? cameraNode.addComponent(CameraShake);
+    view.on('canvas-resize', this.handleCanvasResize, this);
     this.bindEvents();
-    const arena = this.node.getChildByName('Arena');
+    const arena = interfaceRoot.getChildByName('Arena');
     if (!arena) throw new Error('Arena node was not created');
     this.controller = new DemoController(
       arena,
@@ -116,6 +119,7 @@ export class FrameworkDemo extends Component {
 
   /** 释放 Cocos 监听器、业务控制器和 EventBus 订阅。 */
   private destroyApplication(): void {
+    view.off('canvas-resize', this.handleCanvasResize, this);
     game.off(Game.EVENT_HIDE, this.handleHide, this);
     game.off(Game.EVENT_SHOW, this.handleShow, this);
     this.controller?.destroy();
@@ -123,6 +127,7 @@ export class FrameworkDemo extends Component {
     this.cameraShake?.stop();
     this.cameraShake?.destroy();
     this.cameraShake = null;
+    this.backgroundNode = null;
     for (const unsubscribe of this.unsubscribers) unsubscribe();
     this.unsubscribers.length = 0;
     this.events.clear();
@@ -138,6 +143,12 @@ export class FrameworkDemo extends Component {
     this.lifecycle.resume();
   }
 
+  /** 画布尺寸变化后重新选择适配策略并铺满背景。 */
+  private handleCanvasResize(): void {
+    this.configureViewport();
+    this.drawBackground();
+  }
+
   /** 根据设备比例设置稳定的竖屏设计分辨率。 */
   private configureViewport(): void {
     const frame = view.getFrameSize();
@@ -151,20 +162,28 @@ export class FrameworkDemo extends Component {
     );
   }
 
-  /** 创建完整的示例操作界面。 */
-  private buildInterface(): void {
+  /** 创建完整的示例操作界面，并返回承载业务节点的缩放根节点。 */
+  private buildInterface(): Node {
     // Camera 是场景序列化节点，重新构建运行时 UI 时必须保留它。
     for (const child of [...this.node.children]) {
       if (child.name !== 'Camera') child.destroy();
     }
+    this.backgroundNode = null;
     this.drawBackground();
+    const interfaceRoot = this.createNode(
+      'Interface',
+      this.node,
+      DESIGN_WIDTH / INTERFACE_SCALE,
+      DESIGN_HEIGHT / INTERFACE_SCALE,
+    );
+    interfaceRoot.setScale(INTERFACE_SCALE, INTERFACE_SCALE, 1);
 
-    this.createLabel(this.node, 'COCOS FRAMEWORK', 22, 420, 40, PALETTE.mint, true)
+    this.createLabel(interfaceRoot, 'COCOS FRAMEWORK', 22, 420, 40, PALETTE.mint, true)
       .node.setPosition(0, 600);
-    this.createLabel(this.node, '对象池游乐场', 46, 560, 72, PALETTE.text, true)
+    this.createLabel(interfaceRoot, '对象池游乐场', 46, 560, 72, PALETTE.text, true)
       .node.setPosition(0, 548);
 
-    const statePanel = this.createPanel('StatePanel', this.node, 650, 92, PALETTE.panel);
+    const statePanel = this.createPanel('StatePanel', interfaceRoot, 650, 92, PALETTE.panel);
     statePanel.setPosition(0, 445);
     this.stateLabel = this.createLabel(statePanel, '准备中', 23, 140, 48, PALETTE.mint, true);
     this.stateLabel.node.setPosition(-238, 0);
@@ -172,11 +191,11 @@ export class FrameworkDemo extends Component {
     this.pooledLabel = this.createMetric(statePanel, '池内', 74);
     this.createdLabel = this.createMetric(statePanel, '已创建', 228);
 
-    const arena = this.createPanel('Arena', this.node, ARENA_WIDTH, ARENA_HEIGHT, PALETTE.panel);
+    const arena = this.createPanel('Arena', interfaceRoot, ARENA_WIDTH, ARENA_HEIGHT, PALETTE.panel);
     arena.setPosition(0, 58);
     this.drawArenaGrid(arena);
 
-    const controls = this.createNode('Controls', this.node, 650, 82);
+    const controls = this.createNode('Controls', interfaceRoot, 650, 82);
     controls.setPosition(0, -330);
     this.createButton(controls, '生成 5 个', -220, PALETTE.mint, () => {
       this.controller?.spawn(5);
@@ -190,7 +209,7 @@ export class FrameworkDemo extends Component {
       this.appendLog('活跃对象已清空');
     });
 
-    const logPanel = this.createPanel('EventLog', this.node, 650, 190, PALETTE.panelStrong);
+    const logPanel = this.createPanel('EventLog', interfaceRoot, 650, 190, PALETTE.panelStrong);
     logPanel.setPosition(0, -492);
     this.createLabel(logPanel, 'EVENT BUS', 17, 140, 30, PALETTE.muted, true)
       .node.setPosition(-236, 62);
@@ -199,6 +218,7 @@ export class FrameworkDemo extends Component {
     this.logLabel = this.createLabel(logPanel, '', 18, 570, 112, PALETTE.text, false);
     this.logLabel.node.setPosition(0, -16);
     this.logLabel.horizontalAlign = Label.HorizontalAlign.LEFT;
+    return interfaceRoot;
   }
 
   /** 绑定强类型业务事件并刷新 HUD。 */
@@ -219,7 +239,7 @@ export class FrameworkDemo extends Component {
         if (this.createdLabel) this.createdLabel.string = `已创建\n${created}`;
       }),
       this.events.on('demo:collision', ({ total }) => {
-        this.cameraShake?.shake({ duration: 0.16, strength: 5, frequency: 26, rotation: 0.12 });
+        this.cameraShake?.shake({ duration: 0.16, strength: 2.5, frequency: 26, rotation: 0.12 });
         if (this.collisionLabel) this.collisionLabel.string = `碰撞 ${total}`;
         if (total <= 3 || total % 10 === 0) this.appendLog(`碰撞事件 #${total}`);
       }),
@@ -228,13 +248,22 @@ export class FrameworkDemo extends Component {
 
   /** 绘制全屏背景和顶部强调线。 */
   private drawBackground(): void {
-    const background = this.createNode('Background', this.node, DESIGN_WIDTH, DESIGN_HEIGHT);
-    const graphics = background.addComponent(Graphics);
+    const visibleSize = view.getVisibleSize();
+    const width = Math.max(DESIGN_WIDTH, visibleSize.width);
+    const height = Math.max(DESIGN_HEIGHT, visibleSize.height);
+    const background = this.backgroundNode ?? this.createNode('Background', this.node, width, height);
+    this.backgroundNode = background;
+    const transform = background.getComponent(UITransform);
+    if (!transform) throw new Error('Background UITransform was not created');
+    transform.setContentSize(width, height);
+    const graphics = background.getComponent(Graphics) ?? background.addComponent(Graphics);
+    graphics.clear();
     graphics.fillColor = PALETTE.background;
-    graphics.rect(-DESIGN_WIDTH / 2, -DESIGN_HEIGHT / 2, DESIGN_WIDTH, DESIGN_HEIGHT);
+    graphics.rect(-width / 2, -height / 2, width, height);
     graphics.fill();
     graphics.fillColor = PALETTE.mint;
-    graphics.rect(-325, 642, 650, 4);
+    const accentWidth = DESIGN_WIDTH - 50;
+    graphics.rect(-accentWidth / 2, height / 2 - 26, accentWidth, 2);
     graphics.fill();
   }
 

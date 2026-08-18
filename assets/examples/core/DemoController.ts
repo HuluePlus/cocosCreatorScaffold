@@ -103,9 +103,9 @@ export class DemoController {
    */
   public update(deltaTime: number): void {
     if (this.state !== 'running') return;
-    for (const orb of [...this.activeOrbs]) orb.step(deltaTime);
+    for (const orb of Array.from(this.activeOrbs)) orb.step(deltaTime);
 
-    const orbs = [...this.activeOrbs];
+    const orbs = Array.from(this.activeOrbs);
     const currentPairs = new Set<string>();
     for (let left = 0; left < orbs.length; left += 1) {
       for (let right = left + 1; right < orbs.length; right += 1) {
@@ -126,7 +126,7 @@ export class DemoController {
 
   /** 将所有活跃实体归还对象池。 */
   public clear(): void {
-    for (const orb of [...this.activeOrbs]) this.releaseOrb(orb);
+    for (const orb of Array.from(this.activeOrbs)) this.releaseOrb(orb);
     this.activeCollisionPairs.clear();
     this.publishPopulation();
   }

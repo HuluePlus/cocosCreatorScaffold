@@ -7,6 +7,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const assetsRoot = resolve(root, 'assets');
 const frameworkDemoUuid = 'b6e0a2c8-4569-4d1d-9b4c-1f2e3a4b5c6d';
 const frameworkDemoType = 'b6e0aLIRWlNHZtMHy46S1xt';
+const designResolution = { width: 375, height: 852 };
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** 递归返回 assets 下除 meta 外的目录和文件。 */
@@ -54,8 +55,42 @@ if (demoMeta.uuid !== frameworkDemoUuid) {
 }
 
 const scene = JSON.parse(readFileSync(resolve(root, 'assets/scenes/main.scene'), 'utf8'));
-if (!Array.isArray(scene) || !scene.some((entry) => entry?.__type__ === frameworkDemoType)) {
+const sceneEntries = Array.isArray(scene) ? scene : [];
+if (!sceneEntries.some((entry) => entry?.__type__ === frameworkDemoType)) {
   errors.push('main.scene does not contain the FrameworkDemo component');
+}
+
+const projectSettings = JSON.parse(
+  readFileSync(resolve(root, 'settings/v2/packages/project.json'), 'utf8'),
+);
+const configuredResolution = projectSettings.general?.designResolution;
+if (
+  configuredResolution?.width !== designResolution.width
+  || configuredResolution?.height !== designResolution.height
+) {
+  errors.push(`project design resolution must be ${designResolution.width}x${designResolution.height}`);
+}
+
+const canvasNode = sceneEntries.find(
+  (entry) => entry?.__type__ === 'cc.Node' && entry._name === 'Canvas',
+);
+const canvasNodeId = sceneEntries.indexOf(canvasNode);
+const canvasTransform = sceneEntries.find(
+  (entry) => entry?.__type__ === 'cc.UITransform' && entry.node?.__id__ === canvasNodeId,
+);
+const canvas = sceneEntries.find(
+  (entry) => entry?.__type__ === 'cc.Canvas' && entry.node?.__id__ === canvasNodeId,
+);
+const cameraId = canvas?._cameraComponent?.__id__;
+const camera = Number.isInteger(cameraId) ? sceneEntries[cameraId] : undefined;
+if (
+  canvasNode?._lpos?.x !== designResolution.width / 2
+  || canvasNode?._lpos?.y !== designResolution.height / 2
+  || canvasTransform?._contentSize?.width !== designResolution.width
+  || canvasTransform?._contentSize?.height !== designResolution.height
+  || camera?._orthoHeight !== designResolution.height / 2
+) {
+  errors.push('main.scene Canvas and Camera do not match the project design resolution');
 }
 
 const frameworkFiles = entries.filter((absolute) =>
