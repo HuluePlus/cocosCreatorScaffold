@@ -78,6 +78,12 @@ git diff --check
 
 `npm run check` 包含完整 Cocos TypeScript 检查、纯 framework 类型检查和 Vitest 单元测试。完整类型检查依赖 Creator 生成的 `temp/tsconfig.cocos.json`，所以首次 clone 后需要先用 Creator 打开一次项目。
 
+命令验证通过后，还需要进行实际运行验证：
+
+1. 切回已经打开当前项目的 Cocos Creator 3.8.7。
+2. 等待 Creator 检测文件变化并自动完成脚本重新编译，确认控制台没有编译错误。
+3. 使用 Creator 内置 Web 预览运行 `assets/scenes/main.scene`，检查本次改动的实际表现。
+
 重新生成默认场景和确定性 `.meta`：
 
 ```bash

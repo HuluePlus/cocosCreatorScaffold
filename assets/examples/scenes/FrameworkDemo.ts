@@ -10,6 +10,7 @@ import {
   ResolutionPolicy,
   UITransform,
   game,
+  screen,
   view,
 } from 'cc';
 import { EventBus, type Unsubscribe } from '../../framework/core/EventBus';
@@ -151,7 +152,7 @@ export class FrameworkDemo extends Component {
 
   /** 根据设备比例设置稳定的竖屏设计分辨率。 */
   private configureViewport(): void {
-    const frame = view.getFrameSize();
+    const frame = screen.windowSize;
     const wide = frame.width > 0
       && frame.height > 0
       && frame.width / frame.height > DESIGN_WIDTH / DESIGN_HEIGHT;

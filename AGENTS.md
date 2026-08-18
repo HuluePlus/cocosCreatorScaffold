@@ -30,3 +30,9 @@ git diff --check
 ```
 
 `npm run typecheck` 依赖 Creator 生成的 `temp/tsconfig.cocos.json`。首次 clone 后先用 Cocos Creator 3.8.7 打开一次项目。
+
+完成命令验证后，还必须进行 Creator 实际运行验证：
+
+1. 切回已经打开当前项目的 Cocos Creator 3.8.7 窗口。
+2. 等待 Creator 检测文件变化并自动完成脚本重新编译，确认控制台没有编译错误。
+3. 使用 Creator 内置 Web 预览运行 `assets/scenes/main.scene`，实际验证本次改动。单元测试或外部静态服务器不能替代此步骤。
