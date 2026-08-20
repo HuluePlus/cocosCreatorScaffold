@@ -11,6 +11,7 @@
   },
   "include": [
     "assets/framework/core/**/*.ts",
+    "assets/framework/platform/**/*.ts",
     "assets/framework/utils/**/*.ts",
     "assets/examples/configs/**/*.ts",
     "assets/examples/core/DemoStateMachine.ts",

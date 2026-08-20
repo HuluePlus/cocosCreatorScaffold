@@ -171,9 +171,91 @@ lifecycle.start();
 
 Cocos 隐藏和显示事件只调用 `pause()` 与 `resume()`，组件销毁时调用 `destroy()`。音频等具体服务由这些业务回调负责暂停、恢复和释放。
 
+## 屏蔽小游戏平台差异
+
+`createPlatformService()` 会按 `wx`、`tt`、Web 的顺序检测运行环境。业务层只依赖 `PlatformService`，不直接读取平台全局对象。广告位 ID、分享文案和服务端地址属于业务配置，不写入 framework。
+
+```ts
+import {
+  createPlatformService,
+  type PlatformService,
+  type RewardedVideoAd,
+} from '../framework';
+
+class PlatformController {
+  private readonly platform: PlatformService = createPlatformService();
+  private readonly rewarded: RewardedVideoAd | null;
+
+  public constructor(rewardedAdUnitId: string) {
+    this.rewarded = this.platform.capabilities.ads.rewardedVideo
+      ? this.platform.ads.createRewardedVideo({ adUnitId: rewardedAdUnitId })
+      : null;
+  }
+
+  /** 只有完整观看后才由业务层发放奖励。 */
+  public async tryGrantReward(): Promise<boolean> {
+    if (!this.rewarded) return false;
+    const result = await this.rewarded.show();
+    return result.completed;
+  }
+
+  /** 场景或应用组合根销毁时释放广告和原生监听。 */
+  public destroy(): void {
+    this.platform.destroy();
+  }
+}
+```
+
+激励视频 `show()` 会先加载广告，并在关闭回调到达后返回 `{ completed, watchedCount }`。微信旧基础库没有关闭结果时按完整观看兼容；抖音多次观看会保留实际 `watchedCount`。同一平台默认只保留一个激励视频和一个插屏句柄，重复使用同一广告位会返回原句柄，切换广告位前必须先销毁旧句柄。
+
+除广告外，平台层还统一了以下能力：
+
+1. `account`：获取微信或抖音短期登录码，业务服务端仍负责换取和维护用户会话。
+2. `share`：发起分享与配置分享菜单，不把平台回调误当成分享已送达的证明。
+3. `storage`：异步读写可序列化值；Web 预览使用 `localStorage`，不可用时退回内存缓存。
+4. `device`：系统信息、窗口与安全区、剪贴板、长短震动。
+5. `network`：查询和监听归一化后的联网状态。
+6. `lifecycle`：提供 Cocos 基础前后台事件没有携带的场景值、查询参数和来源应用信息。
+7. `updates`：监听客户端检查更新、下载就绪与失败事件，并应用已下载版本。
+
+调用可选能力前先检查 `platform.capabilities`。Web 预览中的广告、登录、分享菜单和客户端更新会抛出 `PlatformError`，不会伪造成功结果。`platform.destroy()` 会幂等销毁所有广告并移除网络、生命周期和更新监听。
+
+```ts
+const platform = createPlatformService();
+const launch = platform.lifecycle.getLaunchContext();
+const login = platform.capabilities.login
+  ? await platform.account.login()
+  : null;
+
+await platform.storage.set('settings', { music: true, volume: 0.8 });
+const safeArea = platform.device.getSystemInfo().safeArea;
+
+const unsubscribe = platform.network.onChange(({ connected }) => {
+  console.log('network connected', connected);
+});
+
+// 单独退订，或最终交给 platform.destroy() 统一清理。
+unsubscribe();
+console.log(launch.scene, login?.code, safeArea);
+```
+
+### 不应伪装成通用 API 的能力
+
+以下差异无法只靠客户端方法签名安全屏蔽，应该在具体项目中基于 `PlatformService.kind` 注入独立业务适配器：
+
+- 支付、虚拟商品和退款：商品模型、系统限制、签名及服务端回调完全不同。
+- 开放数据域、好友榜和平台社交关系：数据权限与渲染模型不同。
+- 云托管、云函数和账号绑定：直接绑定平台后端与用户体系。
+- 录屏、直播、侧边栏复访等平台独占流量能力：不存在等价的跨平台语义。
+- 用户资料、隐私协议和授权弹窗：受基础库版本、用户手势及审核政策约束，必须由业务合规流程决定。
+- 请求域名白名单、分包规则、包体限制和发布参数：属于构建与平台后台配置，运行时抽象无法替代。
+
+普通场景、渲染、输入、音频和资源加载继续使用 Cocos Creator API；不要在平台层重复封装引擎已经稳定屏蔽的能力。
+
 ## 依赖规则
 
 1. `framework/` 不导入具体玩法、示例、场景或资源路径。
 2. `core/` 与 `utils/` 保持引擎无关。
-3. `base/`、`audio/` 和 `effects/` 只依赖 Cocos 基础 API 与 framework 纯 TypeScript 模块。
-4. 业务事件表、状态迁移规则、资源加载和实体配置留在业务目录。
+3. `platform/` 保持纯 TypeScript，通过构造参数注入最小 SDK 接口，不声明全局 `wx` 或 `tt`。
+4. `base/`、`audio/` 和 `effects/` 只依赖 Cocos 基础 API 与 framework 纯 TypeScript 模块。
+5. 业务事件表、状态迁移规则、资源加载、广告位和平台后台配置留在业务目录。

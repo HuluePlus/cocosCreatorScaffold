@@ -28,6 +28,7 @@ assets/
 │   ├── audio/                 # 背景音乐与并发音效管理
 │   ├── core/                  # 生命周期、事件、状态机、对象池
 │   ├── effects/               # 摄像机等 Cocos 表现组件
+│   ├── platform/              # 微信、抖音与 Web 平台能力适配
 │   └── utils/                 # 数学和二维碰撞工具
 ├── examples/                  # 可删除或替换的示例业务
 │   ├── configs/               # 强类型业务事件
@@ -55,6 +56,7 @@ examples  ─────>  framework  ─────>  TypeScript / Cocos 基�
 - `BaseEntity`：统一 Cocos 实体初始化、激活、停用和池化销毁流程。
 - `AudioManager`：统一背景音乐、并发音效、分组音量、静音和前后台暂停恢复。
 - `CameraShake`：可叠加且自动衰减的 2D 摄像机震动，停用或销毁时恢复节点变换。
+- `PlatformService`：统一广告、登录、分享、缓存、设备安全区、网络、启动参数与客户端更新；内置微信、抖音和 Web 实现。
 - `MathUtils`：范围限制、插值、近似比较和可测试随机整数。
 - `CollisionUtils`：与引擎无关的点、矩形和圆形碰撞判断。
 
