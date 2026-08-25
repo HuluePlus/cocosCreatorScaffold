@@ -31,7 +31,8 @@ assets/
 │   ├── platform/              # 微信、抖音与 Web 平台能力适配
 │   └── utils/                 # 数学和二维碰撞工具
 ├── examples/                  # 可删除或替换的示例业务
-│   ├── configs/               # 强类型业务事件
+│   ├── configs/               # 强类型事件与集中管理的模块数值
+│   │   ├── *Numbers.ts         # 只声明不可变数值，不包含游戏逻辑
 │   ├── core/                  # 示例状态和编排控制器
 │   ├── entities/              # BaseEntity 子类
 │   └── scenes/                # 场景入口
@@ -46,6 +47,8 @@ examples  ─────>  framework  ─────>  TypeScript / Cocos 基�
 ```
 
 `framework/` 不得反向引用 `examples/`。删除 `assets/examples/` 后，通用层仍可独立复制到其他 Creator 3.8.x 项目。
+
+游戏相关的可调数值统一放在 `assets/examples/configs/`，按玩法、实体、对象池等模块拆分为不同的 `*Numbers.ts` 文件。数值配置只导出不可变数据，不导入运行时模块，也不包含函数、分支、循环、实例化或其他游戏逻辑；运行时代码负责解释并执行这些配置。`npm run check` 会校验数值配置的纯数据边界。
 
 ## Framework 能力
 

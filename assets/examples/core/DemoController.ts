@@ -3,12 +3,12 @@ import { EventBus } from '../../framework/core/EventBus';
 import { PoolManager, type ObjectPool } from '../../framework/core/PoolManager';
 import type { Rect2 } from '../../framework/utils/CollisionUtils';
 import { MathUtils } from '../../framework/utils/MathUtils';
+import { DEMO_ORB_NUMBERS } from '../configs/DemoOrbNumbers';
+import { DEMO_POOL_NUMBERS } from '../configs/DemoPoolNumbers';
 import type { DemoEventMap } from '../configs/DemoEvents';
 import { DemoOrb } from '../entities/DemoOrb';
 import { DemoStateMachine, type DemoRunState } from './DemoStateMachine';
 
-const MAX_ACTIVE_ORBS = 24;
-const INITIAL_POOL_SIZE = 8;
 const ORB_COLORS: readonly Color[] = [
   new Color(78, 205, 196),
   new Color(255, 107, 107),
@@ -40,8 +40,8 @@ export class DemoController {
       this.events.emit('demo:state-changed', { state });
     });
     this.pool = this.poolManager.createPool(() => this.createOrb(), {
-      initialSize: INITIAL_POOL_SIZE,
-      maxRetained: MAX_ACTIVE_ORBS,
+      initialSize: DEMO_POOL_NUMBERS.initialPoolSize,
+      maxRetained: DEMO_POOL_NUMBERS.maxActiveOrbs,
     });
     this.publishPopulation();
   }
@@ -76,19 +76,25 @@ export class DemoController {
    * @param count 期望生成数量，超过上限的部分会被忽略。
    */
   public spawn(count: number): void {
-    const availableSlots = Math.max(0, MAX_ACTIVE_ORBS - this.activeOrbs.size);
+    const availableSlots = Math.max(0, DEMO_POOL_NUMBERS.maxActiveOrbs - this.activeOrbs.size);
     const spawnCount = Math.min(availableSlots, Math.max(0, Math.floor(count)));
     for (let index = 0; index < spawnCount; index += 1) {
       const orb = this.pool.acquire();
       const angle = Math.random() * Math.PI * 2;
-      const speed = MathUtils.randomInt(90, 190);
+      const speed = MathUtils.randomInt(DEMO_ORB_NUMBERS.speedMin, DEMO_ORB_NUMBERS.speedMax);
       orb.launch({
         id: this.nextOrbId,
-        x: MathUtils.randomInt(Math.ceil(this.arena.x + 40), Math.floor(this.arena.x + this.arena.width - 40)),
-        y: MathUtils.randomInt(Math.ceil(this.arena.y + 40), Math.floor(this.arena.y + this.arena.height - 40)),
+        x: MathUtils.randomInt(
+          Math.ceil(this.arena.x + DEMO_ORB_NUMBERS.spawnPadding),
+          Math.floor(this.arena.x + this.arena.width - DEMO_ORB_NUMBERS.spawnPadding),
+        ),
+        y: MathUtils.randomInt(
+          Math.ceil(this.arena.y + DEMO_ORB_NUMBERS.spawnPadding),
+          Math.floor(this.arena.y + this.arena.height - DEMO_ORB_NUMBERS.spawnPadding),
+        ),
         velocityX: Math.cos(angle) * speed,
         velocityY: Math.sin(angle) * speed,
-        lifetime: MathUtils.randomInt(10, 18),
+        lifetime: MathUtils.randomInt(DEMO_ORB_NUMBERS.lifetimeMin, DEMO_ORB_NUMBERS.lifetimeMax),
         color: ORB_COLORS[(this.nextOrbId - 1) % ORB_COLORS.length],
       });
       this.nextOrbId += 1;

@@ -2,6 +2,7 @@ import { _decorator, Color, Graphics, UITransform, Vec2 } from 'cc';
 import { BaseEntity } from '../../framework/base/BaseEntity';
 import { CollisionUtils, type Circle2, type Rect2 } from '../../framework/utils/CollisionUtils';
 import { MathUtils } from '../../framework/utils/MathUtils';
+import { DEMO_ORB_NUMBERS } from '../configs/DemoOrbNumbers';
 
 const { ccclass } = _decorator;
 
@@ -21,8 +22,6 @@ export interface DemoOrbLaunchOptions {
   readonly lifetime: number;
   readonly color: Color;
 }
-
-const ORB_RADIUS = 18;
 
 /**
  * 可池化的示例实体。
@@ -44,7 +43,7 @@ export class DemoOrb extends BaseEntity<DemoOrbContext> {
   /** 创建圆点所需的 Cocos 组件，长期上下文由 BaseEntity 保存。 */
   protected onInitialize(_context: DemoOrbContext): void {
     const transform = this.node.getComponent(UITransform) ?? this.node.addComponent(UITransform);
-    transform.setContentSize(ORB_RADIUS * 2 + 8, ORB_RADIUS * 2 + 8);
+    transform.setContentSize(DEMO_ORB_NUMBERS.radius * 2 + 8, DEMO_ORB_NUMBERS.radius * 2 + 8);
     this.graphics = this.node.getComponent(Graphics) ?? this.node.addComponent(Graphics);
   }
 
@@ -76,10 +75,10 @@ export class DemoOrb extends BaseEntity<DemoOrbContext> {
 
     const arena = this.context.arena;
     const innerBounds: Rect2 = {
-      x: arena.x + ORB_RADIUS,
-      y: arena.y + ORB_RADIUS,
-      width: Math.max(0, arena.width - ORB_RADIUS * 2),
-      height: Math.max(0, arena.height - ORB_RADIUS * 2),
+      x: arena.x + DEMO_ORB_NUMBERS.radius,
+      y: arena.y + DEMO_ORB_NUMBERS.radius,
+      width: Math.max(0, arena.width - DEMO_ORB_NUMBERS.radius * 2),
+      height: Math.max(0, arena.height - DEMO_ORB_NUMBERS.radius * 2),
     };
     let nextX = this.node.position.x + this.velocity.x * deltaTime;
     let nextY = this.node.position.y + this.velocity.y * deltaTime;
@@ -128,7 +127,7 @@ export class DemoOrb extends BaseEntity<DemoOrbContext> {
     return {
       x: this.node.position.x,
       y: this.node.position.y,
-      radius: ORB_RADIUS,
+      radius: DEMO_ORB_NUMBERS.radius,
     };
   }
 
@@ -136,10 +135,10 @@ export class DemoOrb extends BaseEntity<DemoOrbContext> {
   private draw(fill: Color): void {
     this.graphics.clear();
     this.graphics.fillColor = new Color(0, 0, 0, 42);
-    this.graphics.circle(2, -4, ORB_RADIUS + 2);
+    this.graphics.circle(2, -4, DEMO_ORB_NUMBERS.radius + 2);
     this.graphics.fill();
     this.graphics.fillColor = fill;
-    this.graphics.circle(0, 0, ORB_RADIUS);
+    this.graphics.circle(0, 0, DEMO_ORB_NUMBERS.radius);
     this.graphics.fill();
     this.graphics.fillColor = new Color(255, 255, 255, 150);
     this.graphics.circle(-6, 7, 5);

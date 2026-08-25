@@ -16,16 +16,12 @@ import {
 import { EventBus, type Unsubscribe } from '../../framework/core/EventBus';
 import { GameManager } from '../../framework/core/GameManager';
 import { CameraShake } from '../../framework/effects/CameraShake';
+import { DEMO_ARENA_NUMBERS } from '../configs/DemoArenaNumbers';
 import type { DemoEventMap } from '../configs/DemoEvents';
+import { DEMO_POOL_NUMBERS } from '../configs/DemoPoolNumbers';
 import { DemoController } from '../core/DemoController';
 
 const { ccclass } = _decorator;
-
-const DESIGN_WIDTH = 375;
-const DESIGN_HEIGHT = 852;
-const INTERFACE_SCALE = 0.5;
-const ARENA_WIDTH = 650;
-const ARENA_HEIGHT = 650;
 
 const PALETTE = {
   background: new Color(24, 29, 37),
@@ -96,11 +92,16 @@ export class FrameworkDemo extends Component {
     if (!arena) throw new Error('Arena node was not created');
     this.controller = new DemoController(
       arena,
-      { x: -ARENA_WIDTH / 2, y: -ARENA_HEIGHT / 2, width: ARENA_WIDTH, height: ARENA_HEIGHT },
+      {
+        x: -DEMO_ARENA_NUMBERS.width / 2,
+        y: -DEMO_ARENA_NUMBERS.height / 2,
+        width: DEMO_ARENA_NUMBERS.width,
+        height: DEMO_ARENA_NUMBERS.height,
+      },
       this.events,
     );
     this.controller.start();
-    this.controller.spawn(8);
+    this.controller.spawn(DEMO_POOL_NUMBERS.initialSpawnCount);
     this.appendLog('示例已启动');
     game.on(Game.EVENT_HIDE, this.handleHide, this);
     game.on(Game.EVENT_SHOW, this.handleShow, this);
@@ -155,10 +156,10 @@ export class FrameworkDemo extends Component {
     const frame = screen.windowSize;
     const wide = frame.width > 0
       && frame.height > 0
-      && frame.width / frame.height > DESIGN_WIDTH / DESIGN_HEIGHT;
+      && frame.width / frame.height > DEMO_ARENA_NUMBERS.designWidth / DEMO_ARENA_NUMBERS.designHeight;
     view.setDesignResolutionSize(
-      DESIGN_WIDTH,
-      DESIGN_HEIGHT,
+      DEMO_ARENA_NUMBERS.designWidth,
+      DEMO_ARENA_NUMBERS.designHeight,
       wide ? ResolutionPolicy.FIXED_HEIGHT : ResolutionPolicy.FIXED_WIDTH,
     );
   }
@@ -174,10 +175,14 @@ export class FrameworkDemo extends Component {
     const interfaceRoot = this.createNode(
       'Interface',
       this.node,
-      DESIGN_WIDTH / INTERFACE_SCALE,
-      DESIGN_HEIGHT / INTERFACE_SCALE,
+      DEMO_ARENA_NUMBERS.designWidth / DEMO_ARENA_NUMBERS.interfaceScale,
+      DEMO_ARENA_NUMBERS.designHeight / DEMO_ARENA_NUMBERS.interfaceScale,
     );
-    interfaceRoot.setScale(INTERFACE_SCALE, INTERFACE_SCALE, 1);
+    interfaceRoot.setScale(
+      DEMO_ARENA_NUMBERS.interfaceScale,
+      DEMO_ARENA_NUMBERS.interfaceScale,
+      1,
+    );
 
     this.createLabel(interfaceRoot, 'COCOS FRAMEWORK', 22, 420, 40, PALETTE.mint, true)
       .node.setPosition(0, 600);
@@ -192,14 +197,20 @@ export class FrameworkDemo extends Component {
     this.pooledLabel = this.createMetric(statePanel, '池内', 74);
     this.createdLabel = this.createMetric(statePanel, '已创建', 228);
 
-    const arena = this.createPanel('Arena', interfaceRoot, ARENA_WIDTH, ARENA_HEIGHT, PALETTE.panel);
+    const arena = this.createPanel(
+      'Arena',
+      interfaceRoot,
+      DEMO_ARENA_NUMBERS.width,
+      DEMO_ARENA_NUMBERS.height,
+      PALETTE.panel,
+    );
     arena.setPosition(0, 58);
     this.drawArenaGrid(arena);
 
     const controls = this.createNode('Controls', interfaceRoot, 650, 82);
     controls.setPosition(0, -330);
     this.createButton(controls, '生成 5 个', -220, PALETTE.mint, () => {
-      this.controller?.spawn(5);
+      this.controller?.spawn(DEMO_POOL_NUMBERS.buttonSpawnCount);
       this.appendLog('生成请求 +5');
     });
     this.pauseButtonLabel = this.createButton(controls, '暂停', 0, PALETTE.yellow, () => {
@@ -250,8 +261,8 @@ export class FrameworkDemo extends Component {
   /** 绘制全屏背景和顶部强调线。 */
   private drawBackground(): void {
     const visibleSize = view.getVisibleSize();
-    const width = Math.max(DESIGN_WIDTH, visibleSize.width);
-    const height = Math.max(DESIGN_HEIGHT, visibleSize.height);
+    const width = Math.max(DEMO_ARENA_NUMBERS.designWidth, visibleSize.width);
+    const height = Math.max(DEMO_ARENA_NUMBERS.designHeight, visibleSize.height);
     const background = this.backgroundNode ?? this.createNode('Background', this.node, width, height);
     this.backgroundNode = background;
     const transform = background.getComponent(UITransform);
@@ -263,14 +274,19 @@ export class FrameworkDemo extends Component {
     graphics.rect(-width / 2, -height / 2, width, height);
     graphics.fill();
     graphics.fillColor = PALETTE.mint;
-    const accentWidth = DESIGN_WIDTH - 50;
+    const accentWidth = DEMO_ARENA_NUMBERS.designWidth - 50;
     graphics.rect(-accentWidth / 2, height / 2 - 26, accentWidth, 2);
     graphics.fill();
   }
 
   /** 在场地区域绘制低对比度网格。 */
   private drawArenaGrid(arena: Node): void {
-    const grid = this.createNode('Grid', arena, ARENA_WIDTH, ARENA_HEIGHT);
+    const grid = this.createNode(
+      'Grid',
+      arena,
+      DEMO_ARENA_NUMBERS.width,
+      DEMO_ARENA_NUMBERS.height,
+    );
     const graphics = grid.addComponent(Graphics);
     graphics.strokeColor = new Color(PALETTE.line.r, PALETTE.line.g, PALETTE.line.b, 70);
     graphics.lineWidth = 1;

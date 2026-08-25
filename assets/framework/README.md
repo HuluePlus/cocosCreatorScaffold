@@ -258,4 +258,4 @@ console.log(launch.scene, login?.code, safeArea);
 2. `core/` 与 `utils/` 保持引擎无关。
 3. `platform/` 保持纯 TypeScript，通过构造参数注入最小 SDK 接口，不声明全局 `wx` 或 `tt`。
 4. `base/`、`audio/` 和 `effects/` 只依赖 Cocos 基础 API 与 framework 纯 TypeScript 模块。
-5. 业务事件表、状态迁移规则、资源加载、广告位和平台后台配置留在业务目录。
+5. 业务事件表、状态迁移规则、资源加载、广告位和平台后台配置留在业务目录；游戏数值集中放在业务目录的配置文件中，framework 不读取具体玩法数值。

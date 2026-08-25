@@ -8,6 +8,7 @@
 
 - `assets/framework/`：通用架构层，不得依赖 `assets/examples/`。
 - `assets/examples/`：示例业务层，可以依赖 framework。
+- `assets/examples/configs/`：示例业务配置目录；游戏相关数值按模块拆分到不同的 `*Numbers.ts` 文件中。
 - `assets/scenes/main.scene`：默认可运行场景，只挂载 `FrameworkDemo` 入口组件。
 - `tools/generate-project-assets.mjs`：确定性生成场景和 Cocos `.meta`。
 - `tests/`：不依赖 Creator 运行时的 framework 单元测试。
@@ -21,7 +22,8 @@
 5. 修改 `FrameworkDemo` 的脚本 UUID 或场景结构后，同步更新生成脚本并重新运行 `npm run generate:assets`。
 6. 不提交 `library/`、`temp/`、`build/`、`profiles/`、`coverage/` 或 `node_modules/`。
 7. **检查微信发布转译兼容性**：Cocos Creator 3.8.7 发布构建的 loose 转译会把 `[...someSet]` 降级为 `[].concat(someSet)`，结果是只包含 `Set` 本身的数组，而不是元素数组。浏览器预览执行原生展开语法时不会复现，但微信体验版可能在运行时报 `(..., value[index]) is not a function`。运行时代码不得用数组展开复制 `Set`/`Map` 迭代器；使用 `Array.from(set)` 或显式 `forEach` 收集。涉及这类代码时，单元测试之外还要在用户重新构建后检查 `build/wechatgame-*/assets/main/index.js`，确认未生成 `[].concat(set)`。
-8. 单个文件不得超过 2000 行；接近上限时应按职责拆分，禁止通过压缩代码或合并语句规避限制。`npm run check` 会校验已跟踪文件和未忽略的新文件。
+8. 游戏相关的可调数值统一放在 `assets/examples/configs/`，按玩法、实体、对象池等模块拆分为不同的 `*Numbers.ts` 文件；配置文件只导出不可变数据，不得包含导入、函数、分支、循环、实例化或其他游戏逻辑。修改数值时只改对应配置文件，运行时代码负责解释和执行配置。
+9. 单个文件不得超过 2000 行；接近上限时应按职责拆分，禁止通过压缩代码或合并语句规避限制。`npm run check` 会校验已跟踪文件和未忽略的新文件。
 
 ## 必跑验证
 
